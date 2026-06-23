@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from utils.pdf_extractor import extract_text_from_pdf
+from utils.skill_extractor import extract_all
 
 app = Flask(__name__)
 CORS(app)
@@ -27,6 +28,24 @@ def extract():
             "success": True,
             "text": text,
             "word_count": len(text.split())
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/extract-skills', methods=['POST'])
+def extract_skills_route():
+    try:
+        data = request.json
+        text = data.get('text', '')
+
+        if not text:
+            return jsonify({"error": "No text provided"}), 400
+
+        result = extract_all(text)
+
+        return jsonify({
+            "success": True,
+            **result
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500

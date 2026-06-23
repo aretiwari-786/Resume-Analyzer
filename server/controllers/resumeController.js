@@ -45,7 +45,7 @@ exports.uploadResume = async (req, res) => {
       resumeId: resume._id,
       fileName: req.file.originalname,
       wordCount,
-      extractedText: resumeText.substring(0, 200) + '...' // preview only
+      extractedText: resumeText  // full text now
     });
 
   } catch (err) {
