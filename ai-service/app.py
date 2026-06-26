@@ -4,6 +4,7 @@ from utils.pdf_extractor import extract_text_from_pdf
 from utils.skill_extractor import extract_all
 from utils.matcher import calculate_match_score
 from utils.role_classifier import predict_role, train_model
+from utils.scorer import calculate_resume_score
 
 app = Flask(__name__)
 CORS(app)
@@ -22,15 +23,11 @@ def extract():
     try:
         data = request.json
         pdf_path = data.get('pdf_path')
-
         if not pdf_path:
             return jsonify({"error": "No PDF path provided"}), 400
-
         text = extract_text_from_pdf(pdf_path)
-
         if not text:
             return jsonify({"error": "Could not extract text from PDF"}), 400
-
         return jsonify({
             "success": True,
             "text": text,
@@ -44,16 +41,10 @@ def extract_skills_route():
     try:
         data = request.json
         text = data.get('text', '')
-
         if not text:
             return jsonify({"error": "No text provided"}), 400
-
         result = extract_all(text)
-
-        return jsonify({
-            "success": True,
-            **result
-        })
+        return jsonify({"success": True, **result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -63,16 +54,10 @@ def match():
         data = request.json
         resume_text = data.get('resume_text', '')
         job_description = data.get('job_description', '')
-
         if not resume_text or not job_description:
             return jsonify({"error": "Both resume text and job description required"}), 400
-
         result = calculate_match_score(resume_text, job_description)
-
-        return jsonify({
-            "success": True,
-            **result
-        })
+        return jsonify({"success": True, **result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -81,16 +66,54 @@ def predict_role_route():
     try:
         data = request.json
         resume_text = data.get('resume_text', '')
-
         if not resume_text:
             return jsonify({"error": "No resume text provided"}), 400
-
         result = predict_role(resume_text)
+        return jsonify({"success": True, **result})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    try:
+        data = request.json
+        resume_text = data.get('resume_text', '')
+        job_description = data.get('job_description', '')
+
+        if not resume_text or not job_description:
+            return jsonify({"error": "Both resume text and job description required"}), 400
+
+        # Step 1: Extract Skills + Education + Experience
+        skills_data = extract_all(resume_text)
+
+        # Step 2: Calculate Match Score
+        match_data = calculate_match_score(resume_text, job_description)
+
+        # Step 3: Predict Job Role
+        role_data = predict_role(resume_text)
+
+        # Step 4: Calculate Overall Score
+        score_data = calculate_resume_score(
+            skills_data['skills'],
+            skills_data['experience_years'],
+            skills_data['education'],
+            match_data['match_percentage']
+        )
+
+        # Return complete analysis
         return jsonify({
             "success": True,
-            **result
+            "skills": skills_data['skills'],
+            "skills_count": skills_data['skills_count'],
+            "experience_years": skills_data['experience_years'],
+            "education": skills_data['education'],
+            "match_percentage": match_data['match_percentage'],
+            "missing_keywords": match_data['missing_keywords'],
+            "predicted_role": role_data['predicted_role'],
+            "top_roles": role_data['top_roles'],
+            "score": score_data
         })
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
