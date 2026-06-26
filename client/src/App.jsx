@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import Results from './pages/Results'
 
 function App() {
   return (
@@ -15,6 +16,11 @@ function App() {
           <Route path='/dashboard' element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path='/results' element={
+            <ProtectedRoute>
+              <Results />
             </ProtectedRoute>
           } />
           <Route path='/' element={<Login />} />
