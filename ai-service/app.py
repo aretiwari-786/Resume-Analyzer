@@ -3,9 +3,15 @@ from flask_cors import CORS
 from utils.pdf_extractor import extract_text_from_pdf
 from utils.skill_extractor import extract_all
 from utils.matcher import calculate_match_score
+from utils.role_classifier import predict_role, train_model
 
 app = Flask(__name__)
 CORS(app)
+
+# Train model on startup
+print("Training role classifier model...")
+train_model()
+print("Model ready! ✅")
 
 @app.route('/')
 def home():
@@ -62,6 +68,24 @@ def match():
             return jsonify({"error": "Both resume text and job description required"}), 400
 
         result = calculate_match_score(resume_text, job_description)
+
+        return jsonify({
+            "success": True,
+            **result
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/predict-role', methods=['POST'])
+def predict_role_route():
+    try:
+        data = request.json
+        resume_text = data.get('resume_text', '')
+
+        if not resume_text:
+            return jsonify({"error": "No resume text provided"}), 400
+
+        result = predict_role(resume_text)
 
         return jsonify({
             "success": True,
