@@ -1,0 +1,7 @@
+flask
+flask-cors
+spacy
+scikit-learn
+pdfplumber
+pandas
+numpy

@@ -1,10 +1,9 @@
 import axios from 'axios'
 
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api'
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 })
 
-// Add token to every request automatically
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem('token')
   if (token) {
@@ -13,13 +12,13 @@ API.interceptors.request.use((req) => {
   return req
 })
 
-export const uploadResume = (formData) => 
+export const uploadResume = (formData) =>
   API.post('/resume/upload', formData)
 
-export const getMyResumes = () => 
+export const getMyResumes = () =>
   API.get('/resume/my-resumes')
 
-export const getResumeById = (id) => 
+export const getResumeById = (id) =>
   API.get(`/resume/${id}`)
 
 export default API
