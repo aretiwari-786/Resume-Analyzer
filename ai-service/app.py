@@ -1,3 +1,5 @@
+import os
+import tempfile
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from utils.pdf_extractor import extract_text_from_pdf
@@ -21,13 +23,23 @@ def home():
 @app.route('/extract', methods=['POST'])
 def extract():
     try:
-        data = request.json
-        pdf_path = data.get('pdf_path')
-        if not pdf_path:
-            return jsonify({"error": "No PDF path provided"}), 400
-        text = extract_text_from_pdf(pdf_path)
+        # Handle both file upload and path
+        if request.files.get('file'):
+            file = request.files['file']
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
+                file.save(tmp.name)
+                text = extract_text_from_pdf(tmp.name)
+                os.unlink(tmp.name)
+        else:
+            data = request.json
+            pdf_path = data.get('pdf_path')
+            if not pdf_path:
+                return jsonify({"error": "No PDF path or file provided"}), 400
+            text = extract_text_from_pdf(pdf_path)
+
         if not text:
             return jsonify({"error": "Could not extract text from PDF"}), 400
+
         return jsonify({
             "success": True,
             "text": text,
@@ -83,16 +95,9 @@ def analyze():
         if not resume_text or not job_description:
             return jsonify({"error": "Both resume text and job description required"}), 400
 
-        # Step 1: Extract Skills + Education + Experience
         skills_data = extract_all(resume_text)
-
-        # Step 2: Calculate Match Score
         match_data = calculate_match_score(resume_text, job_description)
-
-        # Step 3: Predict Job Role
         role_data = predict_role(resume_text)
-
-        # Step 4: Calculate Overall Score
         score_data = calculate_resume_score(
             skills_data['skills'],
             skills_data['experience_years'],
@@ -100,7 +105,6 @@ def analyze():
             match_data['match_percentage']
         )
 
-        # Return complete analysis
         return jsonify({
             "success": True,
             "skills": skills_data['skills'],
