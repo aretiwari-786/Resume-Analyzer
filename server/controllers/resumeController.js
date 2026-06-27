@@ -19,7 +19,7 @@ exports.uploadResume = async (req, res) => {
 
     // Step 1: Extract text from PDF
     console.log('Extracting text from PDF...');
-    const extractRes = await axios.post('http://localhost:8000/extract', {
+    const extractRes = await axios.post(`${process.env.ML_SERVICE_URL}/extract`, {
       pdf_path: pdfPath
     });
     const resumeText = extractRes.data.text;
@@ -27,7 +27,7 @@ exports.uploadResume = async (req, res) => {
 
     // Step 2: Run complete ML analysis
     console.log('Running ML analysis...');
-    const analysisRes = await axios.post('http://localhost:8000/analyze', {
+    const analysisRes = await axios.post(`${process.env.ML_SERVICE_URL}/analyze`, {
       resume_text: resumeText,
       job_description: jobDescription
     });
