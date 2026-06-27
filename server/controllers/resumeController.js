@@ -50,7 +50,9 @@ exports.uploadResume = async (req, res) => {
         matchPercentage: analysis.match_percentage,
         missingKeywords: analysis.missing_keywords,
         suggestions: [],
-        predictedRole: analysis.predicted_role
+        predictedRole: analysis.predicted_role,
+        grade: analysis.score.grade,
+        emoji: analysis.score.emoji
       }
     });
     console.log('Saved to MongoDB ✅');

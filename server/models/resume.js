@@ -18,7 +18,9 @@ const resumeSchema = new mongoose.Schema({
     matchPercentage: Number,
     missingKeywords: [String],
     suggestions: [String],
-    predictedRole: String
+    predictedRole: String,
+    grade: String,
+    emoji: String
   },
   createdAt: { 
     type: Date, 
