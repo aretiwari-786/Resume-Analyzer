@@ -5,7 +5,10 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://resume-analyzer-frontend-six-eta.vercel.app'],
+  credentials: true
+}));
 app.use(express.json());
 
 // Serve uploaded files statically
