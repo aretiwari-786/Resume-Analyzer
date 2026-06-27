@@ -23,13 +23,17 @@ def home():
 @app.route('/extract', methods=['POST'])
 def extract():
     try:
-        # Handle both file upload and path
         if request.files.get('file'):
             file = request.files['file']
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
-                file.save(tmp.name)
-                text = extract_text_from_pdf(tmp.name)
-                os.unlink(tmp.name)
+            tmp_path = None
+            try:
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
+                    file.save(tmp.name)
+                    tmp_path = tmp.name
+                text = extract_text_from_pdf(tmp_path)
+            finally:
+                if tmp_path and os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
         else:
             data = request.json
             pdf_path = data.get('pdf_path')
@@ -46,6 +50,7 @@ def extract():
             "word_count": len(text.split())
         })
     except Exception as e:
+        print(f"Extract error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/extract-skills', methods=['POST'])
